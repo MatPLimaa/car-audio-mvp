@@ -1,0 +1,3 @@
+YgzVXlXn0XT20Eqj
+publi key: sb_publishable_vfWrA2D6wRSExFpjfoJOcA_30kQfhib
+api url: https://efjtukcqmziccmvtyhdf.supabase.co/rest/v1/

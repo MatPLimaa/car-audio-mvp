@@ -1,0 +1,20 @@
+{
+    "titulo": "Problema de Arranque",
+    "perguntas": [
+        {
+            "id": "p1",
+            "texto": "Quando tenta ligar, as luzes do painel ficam fracas ou apagam-se?",
+            "opcoes": ["Sim", "Não", "Não reparei"]
+        },
+        {
+            "id": "p2",
+            "texto": "O rádio e os vidros elétricos estão a funcionar com a força normal?",
+            "opcoes": ["Sim", "Não", "Não testei"]
+        },
+        {
+            "id": "p3",
+            "texto": "O que ouve exatamente ao rodar a chave?",
+            "opcoes": ["Um 'clique' único e seco", "Vários estalos rápidos (tec-tec-tec)", "O motor gira, mas muito pesado/lento", "Nenhum barulho"]
+        }
+    ]
+}
