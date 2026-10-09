@@ -26,9 +26,9 @@
         .btn-iniciar-container p { font-size: 24px; font-weight: 700; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); }
 
         #tela-inspecao, #tela-resultado, #tela-perguntas { background: url('/static/bg_inspecao.png') center/cover; justify-content: flex-start; padding-top: 90px; }
-        .texto-ouvindo { font-size: 42px; font-weight: 800; margin-bottom: 60px; min-width: 250px; margin-top: 50px;}
+        .texto-ouvindo { font-size: 32px; font-weight: 800; margin-bottom: 60px; min-width: 250px; margin-top: 50px; line-height: 1.2; }
         @keyframes pulse { 0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(0, 188, 212, 0.6)); } 50% { transform: scale(1.1); filter: drop-shadow(0 0 25px rgba(0, 188, 212, 0.8)); } 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(0, 188, 212, 0)); } }
-        .logo-pulsante { width: 250px; height: auto; animation: pulse 1.5s infinite; margin-bottom: 100px; }
+        .logo-pulsante { width: 250px; height: auto; animation: pulse 1.5s infinite; margin-bottom: 50px; }
 
         .btn-acao { background-color: #e0e0e0; color: #111; border: none; padding: 15px 40px; border-radius: 10px; font-size: 20px; font-weight: 700; cursor: pointer; width: 220px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); margin-top: 20px; margin-bottom: 30px;}
         .btn-destaque { background-color: #00bcd4; color: white; }
@@ -78,8 +78,8 @@
     </div>
 
     <div id="tela-inspecao" class="tela" style="justify-content: center;">
-        <h2 class="texto-ouvindo" style="margin-top: 0;">Ouvindo<span id="pontos"></span></h2>
-        <img src="/static/logo_botao.png" alt="Ouvindo" class="logo-pulsante">
+        <h2 class="texto-ouvindo" id="texto-estado">Ouvindo<span id="pontos"></span></h2>
+        <img src="/static/logo_botao.png" alt="Ouvindo" class="logo-pulsante" id="img-pulsante">
     </div>
 
     <div id="tela-perguntas" class="tela">
@@ -94,7 +94,7 @@
         <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 20px;">Diagnóstico</h2>
         <div id="container-diagnostico"></div>
         
-        <!-- SECÇÃO DE FEEDBACK (NOVA) -->
+        <!-- SECÇÃO DE FEEDBACK -->
         <div class="feedback-container" id="area-feedback">
             <h3 style="font-size: 18px;">O diagnóstico está correto?</h3>
             <p style="font-size: 13px; color: #ddd;">Ajude a nossa Inteligência Artificial a aprender.</p>
@@ -147,6 +147,28 @@
         function pararAnimacaoPontos() { clearInterval(animacaoPontos); }
         function mostrarTela(t) { Object.values(telas).forEach(el => el.classList.remove('ativa')); t.classList.add('ativa'); window.scrollTo(0, 0); }
 
+        function tratarErroAudio() {
+            pararAnimacaoPontos();
+            document.getElementById('img-pulsante').style.animation = "none";
+            
+            const textoEstado = document.getElementById('texto-estado');
+            textoEstado.innerHTML = "Não foi possível identificar o som do carro.<br><span style='font-size: 16px; font-weight: 600; opacity: 0.8; display: block; margin-top: 15px;'>Tente novamente ou verifique se o formato é suportado.</span>";
+            
+            if (!document.getElementById('btn-voltar-erro')) {
+                const btnVoltar = document.createElement('button');
+                btnVoltar.id = 'btn-voltar-erro';
+                btnVoltar.className = 'btn-acao btn-destaque';
+                btnVoltar.innerText = 'Voltar';
+                btnVoltar.onclick = () => {
+                    textoEstado.innerHTML = 'Ouvindo<span id="pontos"></span>';
+                    document.getElementById('img-pulsante').style.animation = "pulse 1.5s infinite";
+                    btnVoltar.remove();
+                    mostrarTela(telas.inicial);
+                };
+                document.getElementById('tela-inspecao').appendChild(btnVoltar);
+            }
+        }
+
         document.getElementById('btn-iniciar').addEventListener('click', async () => {
             mostrarTela(telas.inspecao);
             iniciarAnimacaoPontos();
@@ -173,15 +195,13 @@
                         pararAnimacaoPontos();
                         
                         if(dados.status === "sucesso") {
-                            audioIdGlobal = dados.audio_id; // GUARDA O ID DO AUDIO!
+                            audioIdGlobal = dados.audio_id;
                             buscarPerguntas(dados.problema_identificado);
                         } else {
-                            alert("Erro: " + dados.mensagem);
-                            mostrarTela(telas.inicial);
+                            tratarErroAudio();
                         }
                     } catch (err) {
-                        alert("Erro ao conectar com servidor.");
-                        mostrarTela(telas.inicial);
+                        tratarErroAudio();
                     }
                     streamGlobal.getTracks().forEach(t => t.stop());
                 };
@@ -245,7 +265,7 @@
             const data = await res.json();
             
             if(data.status === "sucesso") {
-                diagnosticoPrincipalApp = data.diagnostico[0].defeito; // Guarda o diagnóstico nº 1
+                diagnosticoPrincipalApp = data.diagnostico[0].defeito;
                 renderizarCartoes(data.diagnostico);
                 iniciarMapa();
             }
@@ -271,13 +291,11 @@
             });
         }
 
-        // === LÓGICA DE FEEDBACK ===
         function abrirFeedback(resposta) {
             feedbackDado = resposta;
             document.querySelector('.feedback-botoes').style.display = 'none';
             document.getElementById('caixa-defeito-real').style.display = 'block';
             
-            // Se o utilizador disser que a app acertou, podemos pre-selecionar o defeito
             if(resposta === "Sim") {
                 document.getElementById('select-defeito').value = diagnosticoPrincipalApp;
             }
